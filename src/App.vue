@@ -1,28 +1,48 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+    <div class="container mx-auto py-4">
+        <Login v-if="!loggedIn" @loggedIn="handleLoggedIn()"></Login>
+        <Messages v-else></Messages>
+    </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+    import Login from "./components/Login";
+    import Messages from "./components/Messages";
 
-export default {
-  name: 'app',
-  components: {
-    HelloWorld
-  }
-}
+    export default {
+        name: 'app',
+
+        components: {
+            Login,
+            Messages,
+        },
+
+        data() {
+            return {
+                loggedIn: false,
+            };
+        },
+
+        /**
+         * Determine if the user is already logged in.
+         */
+        mounted() {
+            this.loggedIn = !!this.$cookies.get('token');
+        },
+
+        methods: {
+            /**
+             * Handle what happens after the user logs in.
+             */
+            handleLoggedIn() {
+                this.loggedIn = true;
+            }
+        },
+    };
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+    html, body {
+        height: 100%;
+    }
 </style>

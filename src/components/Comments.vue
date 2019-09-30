@@ -17,8 +17,8 @@
                         <span class="font-bold">{{ comment.user.name }}</span>
 
                         <span class="text-gray-600 ml-1 text-sm">
-                                        {{ comment.created_at | dateFormat }}
-                                    </span>
+                            {{ comment.created_at | dateFormat }}
+                        </span>
                     </div>
 
                     <div class="py-2">{{ comment.message }}</div>
@@ -46,8 +46,6 @@
 
 <script>
     import _ from 'lodash';
-    import moment from "moment";
-    import md5 from 'crypto-js/md5';
     import CommentForm from './CommentForm';
 
     export default {
@@ -73,22 +71,6 @@
                 loadMore: true,
                 initialised: false,
             };
-        },
-
-        filters: {
-            /**
-             * Convert an iso 8601 date into 'ago' format.
-             */
-            dateFormat(value) {
-                return moment(value).fromNow();
-            },
-
-            /**
-             * Convert an email into a gravatar url.
-             */
-            gravatarPicture(value, size) {
-                return 'https://www.gravatar.com/avatar/' + md5(value) + '?s=' + size;
-            },
         },
 
         methods: {

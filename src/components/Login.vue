@@ -40,8 +40,8 @@
 
         data() {
             return {
-                email: 'jackpriceburns@outlook.com',
-                password: 'password',
+                email: '',
+                password: '',
             };
         },
 

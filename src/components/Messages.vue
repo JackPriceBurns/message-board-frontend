@@ -55,8 +55,6 @@
 
 <script>
     import _ from 'lodash';
-    import moment from 'moment';
-    import md5 from 'crypto-js/md5';
     import Comments from './Comments';
     import MessageForm from './MessageForm';
 
@@ -74,22 +72,6 @@
                 messages: [],
                 loadMore: true,
             };
-        },
-
-        filters: {
-            /**
-             * Convert an iso 8601 date into 'ago' format.
-             */
-            dateFormat(value) {
-                return moment(value).fromNow();
-            },
-
-            /**
-             * Convert an email into a gravatar url.
-             */
-            gravatarPicture(value, size) {
-                return 'https://www.gravatar.com/avatar/' + md5(value) + '?s=' + size;
-            },
         },
 
         /**

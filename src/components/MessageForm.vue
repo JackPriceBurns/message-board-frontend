@@ -46,9 +46,8 @@
                     let response = await this.axios.post('/api/messages', data);
 
                     this.$emit('messageCreated', response.data.data);
+                    this.message = '';
                 } catch (error) {
-                    console.log(error);
-
                     alert('Error occurred posting message.')
                 }
             }

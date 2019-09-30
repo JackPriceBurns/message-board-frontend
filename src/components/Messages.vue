@@ -1,8 +1,8 @@
 <template>
-    <div class="container mx-auto p-4">
+    <div class="container mx-auto p-4 md:w-3/4">
         <h1 class="text-xl mb-4">Messages</h1>
 
-        <div class="rounded overflow-hidden shadow-md mb-8 md:w-3/4"
+        <div class="rounded overflow-hidden shadow-md mb-8"
              v-for="message in messages"
              :key="message.id"
              :id="'message-' + message.id">
@@ -28,10 +28,15 @@
                 <Comments :message="message" :ref="'comments-' + message.id"></Comments>
             </div>
         </div>
+
+        <div v-if="!loadMore" class="text-center py-4">
+            There are no more messages.
+        </div>
     </div>
 </template>
 
 <script>
+    import _ from 'lodash';
     import moment from 'moment';
     import md5 from 'crypto-js/md5';
     import Comments from './Comments';
@@ -45,7 +50,9 @@
 
         data() {
             return {
+                page: 1,
                 messages: [],
+                loadMore: true,
             };
         },
 
@@ -69,7 +76,7 @@
          * Setup listeners & load resources.
          */
         async mounted() {
-            window.addEventListener("scroll", this.handleScroll);
+            window.addEventListener("scroll", _.throttle(this.handleScroll, 50));
 
             await this.setHeaders();
             await this.loadMessages();
@@ -80,7 +87,7 @@
          * Tear down any listeners.
          */
         beforeDestroy() {
-            window.removeEventListener("scroll", this.handleScroll);
+            window.removeEventListener("scroll", _.throttle(this.handleScroll, 50));
         },
 
         methods: {
@@ -98,9 +105,14 @@
              */
             async loadMessages() {
                 try {
-                    let response = await this.axios.get('/api/messages');
+                    let params = {page: this.page};
+                    let response = await this.axios.get('/api/messages', {params});
 
-                    this.messages = response.data.data;
+                    if (response.data.data.length === 0) {
+                        this.loadMore = false;
+                    }
+
+                    this.messages = _.unionBy(this.messages, response.data.data, 'id');
                 } catch (error) {
                     alert('Error loading messages.');
                 }
@@ -125,8 +137,19 @@
              * Load the next load of messages from the API.
              */
             async loadMoreMessages() {
-                // TODO: Check if user has scrolled to the bottom.
-                // TODO: Load more messages.
+                if (!this.loadMore) {
+                    return;
+                }
+
+                let elem = document.querySelector('html');
+
+                if (elem.scrollTop + (elem.clientHeight + 20) < elem.scrollHeight) {
+                    return;
+                }
+
+                this.page++;
+
+                await this.loadMessages();
             },
 
             /**

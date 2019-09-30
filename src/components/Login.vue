@@ -7,7 +7,7 @@
                 <div class="mt-4">
                     <label>
                         Email
-                        <input class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 focus:outline-none focus:bg-white"
+                        <input class="bg-gray-200 appearance-none border border-gray-200 rounded w-full py-2 px-4 text-gray-700 focus:outline-none focus:bg-white"
                                type="text"
                                v-model="email"
                                placeholder="Email">
@@ -17,7 +17,7 @@
                 <div class="mt-4">
                     <label>
                         Password
-                        <input class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 focus:outline-none focus:bg-white"
+                        <input class="bg-gray-200 appearance-none border border-gray-200 rounded w-full py-2 px-4 text-gray-700 focus:outline-none focus:bg-white"
                                type="password"
                                v-model="password"
                                placeholder="Password">
@@ -35,8 +35,6 @@
 </template>
 
 <script>
-    import axios from 'axios';
-
     export default {
         name: 'Login',
 
@@ -60,7 +58,7 @@
 
                 let data = {email: this.email, password: this.password};
 
-                axios.post('http://localhost:8000/auth', data)
+                this.axios.post('/auth', data)
                     .then(this.handleLogin)
                     .catch(this.handleError);
             },

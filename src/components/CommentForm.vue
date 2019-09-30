@@ -17,7 +17,7 @@
         </div>
 
         <div v-else>
-            <span class="cursor-pointer" @click="commenting = true">Add Comment</span>
+            <span class="font-bold cursor-pointer" @click="commenting = true">Add Comment</span>
         </div>
     </div>
 </template>

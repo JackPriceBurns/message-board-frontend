@@ -26,13 +26,15 @@
             </div>
         </div>
 
-        <div class="text-center py-4" v-if="comments.length === 0">
-            <span class="text-bold">There are no comments.</span>
+        <div class="text-center py-4" v-if="!loadMore">
+            <span class="text-bold">There are no more comments.</span>
         </div>
 
         <span class="font-bold" v-if="loading">Loading...</span>
 
-        <span class="font-bold cursor-pointer" v-if="!loading && comments.length !== 0" @click="loadMoreComments()">
+        <span class="font-bold cursor-pointer"
+              v-if="!loading && loadMore"
+              @click="loadMoreComments()">
             Load More
         </span>
     </div>
@@ -62,8 +64,9 @@
             return {
                 page: 1,
                 comment: '',
-                loading: false,
                 comments: [],
+                loading: false,
+                loadMore: true,
                 initialised: false,
             };
         },
@@ -111,6 +114,10 @@
                 try {
                     let params = {page: this.page};
                     let response = await this.axios.get('/api/messages/' + this.message.id + '/comments', {params});
+
+                    if (response.data.data.length === 0) {
+                        this.loadMore = false;
+                    }
 
                     this.comments = _.unionBy(this.comments, response.data.data, 'id');
                     this.loading = false;

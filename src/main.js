@@ -11,7 +11,7 @@ Vue.config.productionTip = false;
 Vue.use(VueCookies);
 
 Vue.prototype.axios = axios.create({
-    baseURL: process.env.VUE_APP_API,
+    baseURL: 'http://' + process.env.VUE_APP_API,
     timeout: 1000,
 });
 

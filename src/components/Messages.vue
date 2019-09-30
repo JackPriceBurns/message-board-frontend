@@ -55,6 +55,7 @@
 
 <script>
     import _ from 'lodash';
+    import io from 'socket.io-client';
     import Comments from './Comments';
     import MessageForm from './MessageForm';
 
@@ -69,6 +70,7 @@
         data() {
             return {
                 page: 1,
+                token: null,
                 messages: [],
                 loadMore: true,
             };
@@ -83,6 +85,7 @@
             await this.setHeaders();
             await this.loadMessages();
             await this.checkVisibleMessages();
+            await this.setupWebsockets();
         },
 
         /**
@@ -97,9 +100,9 @@
              * Get the access token from the cookies.
              */
             async setHeaders() {
-                let token = this.$cookies.get('token');
+                this.token = this.$cookies.get('token');
 
-                this.axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+                this.axios.defaults.headers.common['Authorization'] = 'Bearer ' + this.token;
             },
 
             /**
@@ -208,6 +211,20 @@
             async logout() {
                 this.$cookies.remove('token');
                 this.$emit('loggedOut');
+            },
+
+            /**
+             * Start listening to web sockets.
+             *
+             * @returns {Promise<void>}
+             */
+            async setupWebsockets() {
+                let socket = io.connect(process.env.VUE_APP_API, {
+                    query: {token: this.token}
+                });
+
+                socket.on('messageCreated', this.handleNewMessage);
+                socket.on('messageCreated', this.handleNewComment);
             }
         },
     };

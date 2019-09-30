@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        <div class="text-center py-4" v-else>
+        <div class="text-center py-4" v-if="comments.length === 0">
             <span class="text-bold">There are no comments.</span>
         </div>
 
@@ -112,7 +112,7 @@
                     let params = {page: this.page};
                     let response = await this.axios.get('/api/messages/' + this.message.id + '/comments', {params});
 
-                    this.comments = _.union(this.comments, response.data.data, 'id');
+                    this.comments = _.unionBy(this.comments, response.data.data, 'id');
                     this.loading = false;
                 } catch (error) {
                     alert('An unknown error occurred loading comments.');
@@ -134,21 +134,15 @@
             async sendComment(message) {
                 let data = {
                     message,
-                    message_id: message.id,
+                    message_id: this.message.id,
                 };
 
                 try {
                     let response = await this.axios.post('/api/comments', data);
 
-                    if (!message.comments) {
-                        this.set(message, 'comments', [response.data.data]);
-
-                        return;
-                    }
-
-                    message.comments.unshift(response.data.data);
+                    this.comments.unshift(response.data.data);
                 } catch (error) {
-                    alert('An unknown error occurred.');
+                    alert('An unknown error occurred creating comment.');
                 }
             },
         },

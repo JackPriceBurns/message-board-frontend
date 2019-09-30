@@ -1,8 +1,18 @@
 <template>
     <div class="container mx-auto p-4 md:w-3/4">
-        <h1 class="text-xl mb-4">Messages</h1>
+        <div class="flex">
+            <div class="w-1/2">
+                <h1 class="text-xl mb-4">Messages</h1>
+            </div>
 
-        <div class="rounded overflow-hidden shadow-md mb-8"
+            <div class="w-1/2 text-right">
+                <span class="text-md font-bold mb-4 cursor-pointer" @click="logout()">Logout</span>
+            </div>
+        </div>
+
+        <MessageForm @messageCreated="handleNewMessage"></MessageForm>
+
+        <div class="rounded shadow-md mb-8"
              v-for="message in messages"
              :key="message.id"
              :id="'message-' + message.id">
@@ -13,9 +23,17 @@
                              alt="profile picture">
                     </div>
 
-                    <div>
-                        <div><span class="font-bold">{{ message.user.name }}</span></div>
-                        <div><span class="text-gray-600">{{ message.created_at | dateFormat }}</span></div>
+                    <div class="w-full">
+                        <div class="flex">
+                            <div class="w-1/2">
+                                <div><span class="font-bold">{{ message.user.name }}</span></div>
+                                <div><span class="text-gray-600">{{ message.created_at | dateFormat }}</span></div>
+                            </div>
+
+                            <div class="w-1/2 text-right">
+                                <span class="cursor-pointer" @click="deleteMessage(message)">Delete</span>
+                            </div>
+                        </div>
 
                         <div class="py-3">
                             {{ message.message }}
@@ -40,12 +58,14 @@
     import moment from 'moment';
     import md5 from 'crypto-js/md5';
     import Comments from './Comments';
+    import MessageForm from './MessageForm';
 
     export default {
         name: 'Messages',
 
         components: {
             Comments,
+            MessageForm,
         },
 
         data() {
@@ -170,6 +190,43 @@
 
                 await this.$refs['comments-' + message.id][0].init();
             },
+
+            /**
+             * Add the new message to the screen.
+             */
+            async handleNewMessage(event) {
+                this.messages.unshift(event);
+
+                // Ensure that the element has been added first.
+                this.$nextTick(() => {
+                    this.checkVisibleMessages();
+                });
+            },
+
+            /**
+             * Delete the specified message.
+             */
+            async deleteMessage(message) {
+                try {
+                    await this.axios.delete('/api/messages/' + message.id);
+
+                    this.messages.splice(this.messages.indexOf(message), 1);
+
+                    this.checkVisibleMessages();
+                } catch (error) {
+                    alert('An unknown error occurred deleting the message.')
+                }
+            },
+
+            /**
+             * Log out the current user.
+             *
+             * @returns {Promise<void>}
+             */
+            async logout() {
+                this.$cookies.remove('token');
+                this.$emit('loggedOut');
+            }
         },
     };
 </script>

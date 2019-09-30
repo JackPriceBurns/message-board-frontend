@@ -1,7 +1,7 @@
 <template>
     <div class="container mx-auto py-4">
         <Login v-if="!loggedIn" @loggedIn="handleLoggedIn()"></Login>
-        <Messages v-else></Messages>
+        <Messages v-else @loggedOut="handleLoggedOut()"></Messages>
     </div>
 </template>
 
@@ -36,6 +36,13 @@
              */
             handleLoggedIn() {
                 this.loggedIn = true;
+            },
+
+            /**
+             * Handle what happens after the user logs in.
+             */
+            handleLoggedOut() {
+                this.loggedIn = false;
             }
         },
     };

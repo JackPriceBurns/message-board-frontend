@@ -26,7 +26,11 @@
             </div>
         </div>
 
-        <div class="text-center py-4" v-if="!loadMore">
+        <div class="text-center py-4" v-if="!loadMore && comments.length === 0">
+            <span class="text-bold">There are no comments.</span>
+        </div>
+
+        <div class="text-center py-4" v-if="!loadMore && comments.length > 0">
             <span class="text-bold">There are no more comments.</span>
         </div>
 

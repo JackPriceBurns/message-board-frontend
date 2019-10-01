@@ -1,30 +1,14 @@
 <template>
     <div>
-        <CommentForm @newComment="sendComment"></CommentForm>
+        <CommentForm @commentCreated="handleCommentCreated" :message="message"></CommentForm>
 
-        <div v-if="comments.length !== 0" v-for="comment in comments" :key="comment.id" class="my-4">
-            <hr>
-
-            <div class="flex mt-4">
-                <div>
-                    <img :src="comment.user.email | gravatarPicture(40)"
-                         class="rounded-full mr-2"
-                         alt="profile picture">
-                </div>
-
-                <div>
-                    <div>
-                        <span class="font-bold">{{ comment.user.name }}</span>
-
-                        <span class="text-gray-600 ml-1 text-sm">
-                            {{ comment.created_at | dateFormat }}
-                        </span>
-                    </div>
-
-                    <div class="py-2">{{ comment.message }}</div>
-                </div>
-            </div>
-        </div>
+        <comment @commentDeleted="handleCommentDeleted"
+                 v-if="comments.length !== 0"
+                 v-for="comment in comments"
+                 :key="comment.id"
+                 :comment="comment"
+                 class="my-4">
+        </comment>
 
         <div class="text-center py-4" v-if="!loadMore && comments.length === 0">
             <span class="text-bold">There are no comments.</span>
@@ -46,12 +30,14 @@
 
 <script>
     import _ from 'lodash';
+    import Comment from './Comment';
     import CommentForm from './CommentForm';
 
     export default {
         name: 'Comments',
 
         components: {
+            Comment,
             CommentForm,
         },
 
@@ -122,21 +108,39 @@
             },
 
             /**
-             * Create a new comment on the backend.
+             * Add the new comment to the screen.
              */
-            async sendComment(message) {
-                let data = {
-                    message,
-                    message_id: this.message.id,
-                };
+            async handleCommentCreated(event) {
+                if (!this.initialised) {
+                    await this.init();
 
-                try {
-                    let response = await this.axios.post('/api/comments', data);
-
-                    this.comments.unshift(response.data.data);
-                } catch (error) {
-                    alert('An unknown error occurred creating comment.');
+                    return;
                 }
+
+                let comment = _.find(this.comments, {id: event.id});
+
+                if (comment) {
+                    return;
+                }
+
+                this.comments.unshift(event);
+            },
+
+            /**
+             * Delete the comment from the screen.
+             */
+            async handleCommentDeleted(event) {
+                if (!this.initialised) {
+                    return;
+                }
+
+                let comment = _.find(this.comments, {id: event.id});
+
+                if (!comment) {
+                    return;
+                }
+
+                this.comments.splice(this.comments.indexOf(comment), 1);
             },
         },
     };

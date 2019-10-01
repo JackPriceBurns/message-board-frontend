@@ -10,7 +10,7 @@
 
             <div class="w-1/6 pl-2">
                 <button class="bg-blue-500 hover:bg-blue-700 w-full text-white font-bold py-2 rounded"
-                        @click="sendComment(comment)">
+                        @click="sendComment()">
                     Send
                 </button>
             </div>
@@ -26,6 +26,13 @@
     export default {
         name: 'CommentForm',
 
+        props: {
+            message: {
+                type: Object,
+                required: true,
+            },
+        },
+
         data() {
             return {
                 comment: '',
@@ -35,25 +42,29 @@
 
         methods: {
             /**
-             * Emit the new comment up to the parent.
-             *
-             * @param comment
+             * Create a new comment on the backend.
              */
-            sendComment(comment) {
+            async sendComment() {
                 if (!this.comment) {
                     alert('Please type a comment.');
 
                     return;
                 }
 
-                this.$emit('newComment', comment);
+                let data = {
+                    message: this.comment,
+                    message_id: this.message.id,
+                };
 
-                this.comment = '';
-            }
+                try {
+                    let response = await this.axios.post('/api/comments', data);
+
+                    this.$emit('commentCreated', response.data.data);
+                    this.comment = '';
+                } catch (error) {
+                    alert('An unknown error occurred creating comment.');
+                }
+            },
         },
     };
 </script>
-
-<style scoped>
-
-</style>

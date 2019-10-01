@@ -1,45 +1,14 @@
 <template>
     <div class="container mx-auto p-4 md:w-3/4">
-        <div class="flex">
-            <div class="w-1/2">
-                <h1 class="text-xl mb-4">Messages</h1>
-            </div>
-
-            <div class="w-1/2 text-right">
-                <span class="text-md font-bold mb-4 cursor-pointer" @click="logout()">Logout</span>
-            </div>
-        </div>
-
-        <MessageForm @messageCreated="handleNewMessage"></MessageForm>
+        <MessageHeader @loggedOut="$emit('loggedOut')"></MessageHeader>
+        <MessageForm @messageCreated="handleMessageCreated"></MessageForm>
 
         <div class="rounded shadow-md mb-8"
              v-for="message in messages"
              :key="message.id"
              :id="'message-' + message.id">
             <div class="px-6 py-4">
-                <div class="flex">
-                    <div>
-                        <img :src="message.user.email | gravatarPicture(60)" class="rounded-full mr-4"
-                             alt="profile picture">
-                    </div>
-
-                    <div class="w-full">
-                        <div class="flex">
-                            <div class="w-1/2">
-                                <div><span class="font-bold">{{ message.user.name }}</span></div>
-                                <div><span class="text-gray-600">{{ message.created_at | dateFormat }}</span></div>
-                            </div>
-
-                            <div class="w-1/2 text-right">
-                                <span class="cursor-pointer" @click="deleteMessage(message)">Delete</span>
-                            </div>
-                        </div>
-
-                        <div class="py-3">
-                            {{ message.message }}
-                        </div>
-                    </div>
-                </div>
+                <Message :message="message" @messageDeleted="handleMessageDeleted"></Message>
 
                 <hr class="my-5">
 
@@ -56,21 +25,31 @@
 <script>
     import _ from 'lodash';
     import io from 'socket.io-client';
+    import Message from './Message';
     import Comments from './Comments';
     import MessageForm from './MessageForm';
+    import MessageHeader from './MessageHeader';
 
     export default {
         name: 'Messages',
 
         components: {
+            Message,
             Comments,
             MessageForm,
+            MessageHeader,
+        },
+
+        props: {
+            token: {
+                type: String,
+                required: true,
+            },
         },
 
         data() {
             return {
                 page: 1,
-                token: null,
                 messages: [],
                 loadMore: true,
             };
@@ -82,7 +61,6 @@
         async mounted() {
             window.addEventListener("scroll", _.throttle(this.handleScroll, 50));
 
-            await this.setHeaders();
             await this.loadMessages();
             await this.checkVisibleMessages();
             await this.setupWebsockets();
@@ -96,15 +74,6 @@
         },
 
         methods: {
-            /**
-             * Get the access token from the cookies.
-             */
-            async setHeaders() {
-                this.token = this.$cookies.get('token');
-
-                this.axios.defaults.headers.common['Authorization'] = 'Bearer ' + this.token;
-            },
-
             /**
              * Load all the messages from the API.
              */
@@ -177,9 +146,33 @@
             },
 
             /**
+             * Start listening to web sockets.
+             *
+             * @returns {Promise<void>}
+             */
+            async setupWebsockets() {
+                let socket = await io.connect(process.env.VUE_APP_API, {
+                    query: {token: 'Bearer ' + this.token}
+                });
+
+                socket.on('messageCreated', this.handleMessageCreated);
+                socket.on('messageDeleted', this.handleMessageDeleted);
+                socket.on('commentCreated', this.handleCommentCreated);
+                socket.on('commentDeleted', this.handleCommentDeleted);
+            },
+
+            /**
              * Add the new message to the screen.
              */
-            async handleNewMessage(event) {
+            handleMessageCreated(event) {
+                let message = _.find(this.messages, {id: event.id});
+
+                // If the message is there, don't do anything.
+                if (message) {
+                    return;
+                }
+
+                // Add the message.
                 this.messages.unshift(event);
 
                 // Ensure that the element has been added first.
@@ -189,43 +182,50 @@
             },
 
             /**
-             * Delete the specified message.
+             * Remove the message from the screen.
              */
-            async deleteMessage(message) {
-                try {
-                    await this.axios.delete('/api/messages/' + message.id);
+            handleMessageDeleted(event) {
+                let message = _.find(this.messages, {id: event.id});
 
-                    this.messages.splice(this.messages.indexOf(message), 1);
-
-                    this.checkVisibleMessages();
-                } catch (error) {
-                    alert('An unknown error occurred deleting the message.')
+                // If the message isn't there, don't do anything.
+                if (!message) {
+                    return;
                 }
-            },
 
-            /**
-             * Log out the current user.
-             *
-             * @returns {Promise<void>}
-             */
-            async logout() {
-                this.$cookies.remove('token');
-                this.$emit('loggedOut');
-            },
+                // Remove the message.
+                this.messages.splice(this.messages.indexOf(message), 1);
 
-            /**
-             * Start listening to web sockets.
-             *
-             * @returns {Promise<void>}
-             */
-            async setupWebsockets() {
-                let socket = io.connect(process.env.VUE_APP_API, {
-                    query: {token: this.token}
+                // Ensure that the element has been added first.
+                this.$nextTick(() => {
+                    this.checkVisibleMessages();
                 });
+            },
 
-                socket.on('messageCreated', this.handleNewMessage);
-                socket.on('messageCreated', this.handleNewComment);
-            }
+            /**
+             * Add the new comment to the screen.
+             */
+            handleCommentCreated(event) {
+                let message = _.find(this.messages, {id: event.message_id});
+
+                if (!message) {
+                    return;
+                }
+
+                this.$refs['comments-' + message.id][0].handleCommentCreated(event);
+            },
+
+            /**
+             * Add the new comment to the screen.
+             */
+            handleCommentDeleted(event) {
+                let message = _.find(this.messages, {id: event.message_id});
+
+                if (!message) {
+                    return;
+                }
+
+                this.$refs['comments-' + message.id][0].handleCommentDeleted(event);
+            },
         },
     };
 </script>

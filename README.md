@@ -1,29 +1,15 @@
-# message-board-frontend
+# Message Board Frontend
 
-## Project setup
-```
-yarn install
-```
+This is the frontend for the message board written in Javascript using Vue.
+This frontend uses the message board backend, ensure the backend is setup correctly first.
 
-### Compiles and hot-reloads for development
-```
-yarn run serve
-```
+## Setup
 
-### Compiles and minifies for production
-```
-yarn run build
-```
+- Copy `.env.example` to `.env`
+- Ensure `VUE_APP_API` is set to the hostname of the message board backend, example: `localhost:8000`
+- Install packages `yarn install`
 
-### Run your tests
-```
-yarn run test
-```
+## Start
 
-### Lints and fixes files
-```
-yarn run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+- Run `yarn serve` to host the app locally with hot reloading or
+- Run `yarn build` to build the application for production
